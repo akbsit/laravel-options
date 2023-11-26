@@ -19,10 +19,11 @@ return new class extends Migration
         Schema::create(self::TABLE_NAME, function (Blueprint $oTable) {
             $oTable->id();
 
-            $oTable->string('group', 100)->nullable();
+            $oTable->string('group', 100);
             $oTable->string('option', 100);
             $oTable->text('value')->nullable();
             $oTable->text('description')->nullable();
+            $oTable->string('type', 10);
 
             $oTable->timestamps();
 
