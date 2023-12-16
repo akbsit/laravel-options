@@ -38,14 +38,16 @@ final class Option
 
     public function put(string $sOption, mixed $value, string $sGroup = self::DEFAULT_GROUP): OptionModel
     {
-        $oOption = new OptionModel;
-
-        return $oOption->updateOrCreate([
+        $arAttributes = [
             'group'  => $sGroup,
             'option' => $sOption,
-        ], [
+        ];
+
+        $arValues = [
             'value' => $value,
             'type'  => gettype($value),
-        ]);
+        ];
+
+        return (new OptionModel)->updateOrCreate($arAttributes, $arValues);
     }
 }

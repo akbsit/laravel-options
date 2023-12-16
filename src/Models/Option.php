@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use TypeError;
 
 /**
  * @mixin Model
@@ -28,6 +29,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Option extends Model
 {
+    private const TYPE_ARRAY = 'array';
+    private const TYPE_DOUBLE = 'double';
+    private const TYPE_INTEGER = 'integer';
+    private const TYPE_STRING = 'string';
+
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -58,19 +64,35 @@ final class Option extends Model
         return Attribute::make(
             get: function (mixed $value) {
                 return match ($this->type) {
-                    'array' => JsonHelper::make()->data($value)->decode(),
-                    'integer' => (int)$value,
-                    'double' => (float)$value,
-                    default => (string)$value
+                    self::TYPE_ARRAY => JsonHelper::make()->data($value)->decode(),
+                    self::TYPE_INTEGER => (int)$value,
+                    self::TYPE_DOUBLE => (float)$value,
+                    self::TYPE_STRING => (string)$value,
+                    default => throw new TypeError("The type '$this->type' is not supported.")
                 };
             },
             set: function (mixed $value) {
-                if (is_array($value)) {
+                $sType = gettype($value);
+                if (!in_array($sType, $this->getAvailableTypeList())) {
+                    throw new TypeError("The type '$sType' is not supported.");
+                }
+
+                if ($sType === self::TYPE_ARRAY) {
                     $value = JsonHelper::make()->data($value)->encode();
                 }
 
                 return (string)$value;
             },
         );
+    }
+
+    private function getAvailableTypeList(): array
+    {
+        return [
+            self::TYPE_ARRAY,
+            self::TYPE_INTEGER,
+            self::TYPE_DOUBLE,
+            self::TYPE_STRING,
+        ];
     }
 }
